@@ -5,18 +5,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     SurfaceView surfaceView;
-
+    TextView textView;
+    GLDrawer drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
-        final GLDrawer drawer = new GLDrawer();
+        textView = findViewById(R.id.text);
+        drawer = new GLDrawer(new GLDrawer.Callback() {
+            @Override
+            public void onCallback(String str) {
+                textView.setText(str);
+            }
+        });
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(final SurfaceHolder holder) {
@@ -39,11 +48,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        drawer.start();
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
+
+
 }

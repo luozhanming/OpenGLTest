@@ -8,6 +8,7 @@
 #include <EGL/eglext.h>
 #include <android/native_window_jni.h>
 #include <android/log.h>
+#include <pthread.h>
 /* Header for class com_luozhanming_opengltest_GLDrawer */
 
 #ifndef _Included_com_luozhanming_opengltest_GLDrawer
@@ -85,6 +86,14 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_init
  */
 JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_start
         (JNIEnv *env, jobject invoker) {
+    (*env)->NewGlobalRef(env, invoker);
+    jclass clazz = (*env)->FindClass(env, "com/luozhanming/opengltest/GLDrawer");
+    jmethodID methodId = (*env)->GetMethodID(env, clazz, "showText", "(Ljava/lang/String;)V");
+    if (methodId == NULL) {
+        return 1;
+    }
+    (*env)->CallVoidMethod(env, invoker, methodId,(jstring)(*env)->NewStringUTF(env,"手动阀撒旦发射点手动阀"));
+    return 0;
 
 }
 
@@ -95,7 +104,7 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_start
  */
 JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_draw
         (JNIEnv *env, jobject invoker) {
-
+    return 0;
 }
 
 /*
@@ -105,7 +114,7 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_draw
  */
 JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_destroy
         (JNIEnv *env, jobject invoker) {
-
+    return 0;
 }
 
 #ifdef __cplusplus
