@@ -56,4 +56,5 @@ target_link_libraries(
         EGL
         android
         ${log-lib}
+        ${CMAKE_ANDROID_ARCH_ABI}
 )

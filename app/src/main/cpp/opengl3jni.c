@@ -9,6 +9,7 @@
 #include <android/native_window_jni.h>
 #include <android/log.h>
 #include <pthread.h>
+#include <malloc.h>
 /* Header for class com_luozhanming_opengltest_GLDrawer */
 
 #ifndef _Included_com_luozhanming_opengltest_GLDrawer
@@ -22,6 +23,9 @@ static const char *TAG = "glDrawer";
 #define LOGI(fmt, args...) __android_log_print(ANDROID_LOG_INFO,  TAG, fmt, ##args)
 #define LOGD(fmt, args...) __android_log_print(ANDROID_LOG_DEBUG, TAG, fmt, ##args)
 #define LOGE(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG, fmt, ##args)
+
+
+const char *shaderSrc = "";
 
 /*
  * Class:     com_luozhanming_opengltest_GLDrawer
@@ -76,6 +80,13 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_init
     if (!eglMakeCurrent(display, eglSurface, eglSurface, context)) {
         return -1;
     }
+    GLuint vertexShader,fragmentShader;
+    vertexShader = LoadShader(GL_VERTEX_SHADER,"");
+    fragmentShader = LoadShader(GL_FRAGMENT_SHADER,"");
+    GLuint program = LinkShaderAndProgram(vertexShader,fragmentShader);
+    glUseProgram(program);
+
+
     return 0;
 }
 
@@ -92,7 +103,8 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_start
     if (methodId == NULL) {
         return 1;
     }
-    (*env)->CallVoidMethod(env, invoker, methodId,(jstring)(*env)->NewStringUTF(env,"手动阀撒旦发射点手动阀"));
+    (*env)->CallVoidMethod(env, invoker, methodId,
+                           (jstring) (*env)->NewStringUTF(env, "手动阀撒旦发射点手动阀"));
     return 0;
 
 }
@@ -115,6 +127,83 @@ JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_draw
 JNIEXPORT jint JNICALL Java_com_luozhanming_opengltest_GLDrawer_destroy
         (JNIEnv *env, jobject invoker) {
     return 0;
+}
+
+
+/**
+ * 加载着色器
+ * @param type shader type
+ * @param shaderSrc shaderSrc
+ * @return shader
+ * */
+GLuint LoadShader(GLenum type, const char *shaderSrc) {
+    GLuint shader;
+    GLuint complied;
+    //Create the shader object
+    shader = glCreateShader(type);
+
+    if (shader == 0) {
+        return 0;
+    }
+
+    //Load the shader source
+    glShaderSource(shader, 1, &shaderSrc, NULL);
+
+    //Complied the shader
+    glCompileShader(shader);
+
+    //Check the compiled status
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &complied);
+
+    if (!complied) {
+        GLint infoLen = 0;
+
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+
+        if (infoLen > 1) {
+            char *infoLog = malloc(sizeof(char) * infoLen);
+            glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+            LOGE("Error compiling shader :\n%s\n", infoLog);
+            free(infoLog);
+        }
+        glDeleteShader(shader);
+        return 0;
+    }
+    return shader;
+}
+
+
+
+GLuint LinkShaderAndProgram(GLuint vertexShader, GLuint fragmentShader) {
+    GLuint programObject = glCreateProgram();
+    GLuint linked;
+
+    if (programObject == 0) {
+        return 0;
+    }
+
+    glAttachShader(programObject, vertexShader);
+    glAttachShader(programObject, fragmentShader);
+
+    glLinkProgram(programObject);
+    glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
+
+    if(!linked){
+        GLint infoLen = 0;
+
+        glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
+
+        if (infoLen > 1) {
+            char *infoLog = malloc(sizeof(char) * infoLen);
+            glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
+            LOGE("Error compiling shader :\n%s\n", infoLog);
+            free(infoLog);
+        }
+        glDeleteProgram(programObject);
+        return 0;
+    }
+    return programObject;
+
 }
 
 #ifdef __cplusplus
